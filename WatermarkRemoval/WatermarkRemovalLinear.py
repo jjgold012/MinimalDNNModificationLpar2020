@@ -12,11 +12,11 @@ from functools import reduce
 from gurobipy import *
 from time import process_time 
 from WatermarkVerification1 import *
-import MarabouNetworkTFWeightsAsVar2
+import MarabouNetworkWeightsVars
 sat = 'SAT'
 unsat = 'UNSAT'
 
-class WatermarkVerification3:
+class WatermarkRmovalLinear:
 
     def getNetworkSolution(self, network):
         equations = network.equList
@@ -65,12 +65,12 @@ class WatermarkVerification3:
         lastlayer_inputs = np.load('./data/{}.lastlayer.input.npy'.format(model_name))
         predictions = np.load('./data/{}.prediction.npy'.format(model_name))
         epsilons_vals = np.array([])
-        out_file = open('./data/results/problem3/{}.{}.wm.time.csv'.format(model_name, numOfInputs), 'w')
+        out_file = open('./data/results/linear/{}.{}.wm.time.csv'.format(model_name, numOfInputs), 'w')
         out_file.write('sat-epsilon,original-prediction,second-best-prediction, time\n')
         for i in range(random_samples.shape[0]):
             lastlayer_input = np.array([lastlayer_inputs[j] for j in random_samples[i]])  
             prediction = np.array([predictions[j] for j in random_samples[i]])  
-            network = MarabouNetworkTFWeightsAsVar2.read_tf_weights_as_var(filename=filename, inputVals=lastlayer_input)
+            network = MarabouNetworkWeightsVars.read_tf_weights_as_var(filename=filename, inputVals=lastlayer_input)
             t1 = process_time()
             results, oldPred, secondPred, newOutput = self.findEpsilon(network, prediction)
             t = process_time() - t1
@@ -81,7 +81,7 @@ class WatermarkVerification3:
             epsilons_vals = newVals if epsilons_vals.size==0 else np.append(epsilons_vals, newVals, axis=0)
         
         out_file.close()
-        # np.save('./data/results/problem3/{}.{}.wm.vals'.format(model_name, numOfInputs), epsilons_vals)
+        # np.save('./data/results/linear/{}.{}.wm.vals'.format(model_name, numOfInputs), epsilons_vals)
     
 
 if __name__ == '__main__':
@@ -93,5 +93,5 @@ if __name__ == '__main__':
     numOfInputs = int(args.num_of_inputs)
     model_name = args.model
     MODELS_PATH = './Models'
-    problem = WatermarkVerification3()
+    problem = WatermarkRmovalLinear()
     problem.run(model_name, numOfInputs)

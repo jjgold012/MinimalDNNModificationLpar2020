@@ -9,7 +9,7 @@ import tensorflow as tf
 from maraboupy import MarabouUtils
 from maraboupy import MarabouNetwork
 
-class MarabouNetworkTFWeightsAsVar(MarabouNetwork.MarabouNetwork):
+class MarabouNetworkWeightsVars(MarabouNetwork.MarabouNetwork):
     def __init__(self, filename, inputVals, inputNames=None, outputName=None, savedModel=False, savedModelTags=[]):
         """
         Constructs a MarabouNetworkTF object from a frozen Tensorflow protobuf or SavedModel

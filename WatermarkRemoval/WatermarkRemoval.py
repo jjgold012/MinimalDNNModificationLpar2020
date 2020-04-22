@@ -10,11 +10,42 @@ from maraboupy import MarabouCore
 from time import process_time 
 
 from WatermarkVerification1 import *
-import MarabouNetworkTFWeightsAsVar2
+import MarabouNetworkWeightsVars
 sat = 'SAT'
 unsat = 'UNSAT'
 
-class WatermarkVerification4(WatermarkVerification):
+class WatermarkRemoval:
+    def __init__(self, epsilon_max, epsilon_interval):
+        self.epsilon_max = epsilon_max
+        self.epsilon_interval = epsilon_interval
+
+    def findEpsilonInterval(self, network, prediction):
+        sat_epsilon = self.epsilon_max
+        unsat_epsilon = 0.0
+        sat_vals = None
+        epsilon = sat_epsilon
+        while abs(sat_epsilon - unsat_epsilon) > self.epsilon_interval:
+            status, vals, out = self.evaluateEpsilon(epsilon, deepcopy(network), prediction)
+            if status == sat:
+                sat_epsilon = epsilon
+                sat_vals = (status, vals, out)
+            else:
+                unsat_epsilon = epsilon
+            epsilon = (sat_epsilon + unsat_epsilon)/2
+        return unsat_epsilon, sat_epsilon , sat_vals
+
+    def evaluateSingleOutput(self, epsilon, network, prediction, output):
+        outputVars = network.outputVars[0]
+        for k in network.matMulLayers.keys():
+            n, m = network.matMulLayers[k]['vals'].shape
+            for i in range(n):
+                for j in range(m):
+                    network.setUpperBound(network.matMulLayers[k]['epsilons'][i][j], epsilon)
+                    network.setLowerBound(network.matMulLayers[k]['epsilons'][i][j], -epsilon)
+            
+        MarabouUtils.addInequality(network, [outputVars[prediction], outputVars[output]], [1, -1], 0)
+        return network.solve()
+
 
     def epsilonABS(self, network, epsilon_var):
         epsilon2 = network.getNewVariable()
@@ -100,7 +131,7 @@ class WatermarkVerification4(WatermarkVerification):
 
         start = start if start > 0 else 0
         finish = finish if finish > 0 else (random_samples.shape[0]-1)
-        out_file = open('./data/results/problem4/{}.{}.wm_{}-{}.time.csv'.format(model_name, numOfInputs, start, finish), 'w')
+        out_file = open('./data/results/nonLinear/{}.{}.wm_{}-{}.time.csv'.format(model_name, numOfInputs, start, finish), 'w')
         out_file.write('unsat-epsilon,sat-epsilon,original-prediction,second-best-prediction,time\n')
 
         for i in range(start, finish+1):
@@ -109,7 +140,7 @@ class WatermarkVerification4(WatermarkVerification):
             # if numOfInputs==1:
             #     lastlayer_input = lastlayer_inputs[i].reshape(1, lastlayer_inputs[i].shape[0])
             #     prediction = predictions[i].reshape(1, predictions[i].shape[0])
-            network = MarabouNetworkTFWeightsAsVar2.read_tf_weights_as_var(filename=filename, inputVals=lastlayer_input)
+            network = MarabouNetworkWeightsVars.read_tf_weights_as_var(filename=filename, inputVals=lastlayer_input)
             t1 = process_time()
             unsat_epsilon, sat_epsilon, sat_vals = self.findEpsilonInterval(network, prediction)
             t = process_time() - t1
@@ -137,7 +168,7 @@ class WatermarkVerification4(WatermarkVerification):
         # out_file.write('\nnew prediction: \n')
         # pprint(sat_vals[2].tolist(), out_file)
         out_file.close()
-        # np.save('./data/results/problem4/{}.{}.wm_{}-{}.vals'.format(model_name, numOfInputs, start, finish), epsilons_vals)
+        np.save('./data/results/nonLinear/{}.{}.wm_{}-{}.vals'.format(model_name, numOfInputs, start, finish), epsilons_vals)
     
 
 if __name__ == '__main__':
@@ -158,5 +189,5 @@ if __name__ == '__main__':
     finish = int(args.finish)  
 
     MODELS_PATH = './Models'
-    problem = WatermarkVerification4(epsilon_max, epsilon_interval)
+    problem = WatermarkRemoval(epsilon_max, epsilon_interval)
     problem.run(model_name, numOfInputs, start, finish)
