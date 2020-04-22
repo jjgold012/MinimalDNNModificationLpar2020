@@ -7,6 +7,7 @@ from copy import deepcopy
 from maraboupy import Marabou
 from maraboupy import MarabouUtils
 from maraboupy import MarabouCore
+from time import process_time 
 
 from WatermarkVerification1 import *
 import MarabouNetworkTFWeightsAsVar2
@@ -99,8 +100,8 @@ class WatermarkVerification4(WatermarkVerification):
 
         start = start if start > 0 else 0
         finish = finish if finish > 0 else (random_samples.shape[0]-1)
-        out_file = open('./data/results/problem4/{}.{}.wm_{}-{}.csv'.format(model_name, numOfInputs, start, finish), 'w')
-        out_file.write('unsat-epsilon,sat-epsilon,original-prediction,second-best-prediction\n')
+        out_file = open('./data/results/problem4/{}.{}.wm_{}-{}.time.csv'.format(model_name, numOfInputs, start, finish), 'w')
+        out_file.write('unsat-epsilon,sat-epsilon,original-prediction,second-best-prediction,time\n')
 
         for i in range(start, finish+1):
             lastlayer_input = lastlayer_inputs[i].reshape(1, lastlayer_inputs[i].shape[0]) if numOfInputs==1 else np.array([lastlayer_inputs[j] for j in random_samples[i]])
@@ -109,11 +110,13 @@ class WatermarkVerification4(WatermarkVerification):
             #     lastlayer_input = lastlayer_inputs[i].reshape(1, lastlayer_inputs[i].shape[0])
             #     prediction = predictions[i].reshape(1, predictions[i].shape[0])
             network = MarabouNetworkTFWeightsAsVar2.read_tf_weights_as_var(filename=filename, inputVals=lastlayer_input)
+            t1 = process_time()
             unsat_epsilon, sat_epsilon, sat_vals = self.findEpsilonInterval(network, prediction)
+            t = process_time() - t1
             predIndices = np.flip(np.argsort(prediction, axis=1), axis=1)
             oldPred = predIndices[:,0]
             secondPred = predIndices[:,1]
-            out_file.write('{},{},"{}","{}"\n'.format(unsat_epsilon, sat_epsilon, oldPred, secondPred))
+            out_file.write('{},{},"{}","{}",{}\n'.format(unsat_epsilon, sat_epsilon, oldPred, secondPred, t))
             out_file.flush()
 
             all_vals = sat_vals[1][0]
@@ -134,7 +137,7 @@ class WatermarkVerification4(WatermarkVerification):
         # out_file.write('\nnew prediction: \n')
         # pprint(sat_vals[2].tolist(), out_file)
         out_file.close()
-        np.save('./data/results/problem4/{}.{}.wm_{}-{}.vals'.format(model_name, numOfInputs, start, finish), epsilons_vals)
+        # np.save('./data/results/problem4/{}.{}.wm_{}-{}.vals'.format(model_name, numOfInputs, start, finish), epsilons_vals)
     
 
 if __name__ == '__main__':
