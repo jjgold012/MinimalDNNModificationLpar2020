@@ -16,3 +16,4 @@ latex/problems.pdf
 *.bbl
 *~
 watermarks.pdf
+dnnMod.code-workspace

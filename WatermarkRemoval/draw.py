@@ -60,18 +60,18 @@ model_name = 'mnist.w.wm'
 # # x = [0,1,2,3,4,5]
 # x_str = ','.join(map(str, x))
 
-# out_file = open('./data/results/problem3/{}_summary.csv'.format(model_name.replace('.', '_')), 'w')
+# out_file = open('./data/results/linear/{}_summary.csv'.format(model_name.replace('.', '_')), 'w')
 # out_file.write('Number of watermarks,Average change,Minimal change,Maximal change,Average accuracy,Minimal accuracy,Maximal accuracy\n')
 
 # for i in x:
-#     datafile = open('./data/results/problem3/{}.{}.wm.accuracy.csv'.format(model_name, i))
+#     datafile = open('./data/results/linear/{}.{}.wm.accuracy.csv'.format(model_name, i))
 #     file_reader = DictReader(datafile)
 #     vals_acc[i] = np.array([float(line['test-accuracy']) for line in file_reader])
 #     datafile.close()
 #     if i == 0:
 #         vals_epsilon[i] = 0
 #     else:
-#         datafile = open('./data/results/problem3/{}.{}.wm.csv'.format(model_name, i))
+#         datafile = open('./data/results/linear/{}.{}.wm.csv'.format(model_name, i))
 #         file_reader = DictReader(datafile)
 #         vals_epsilon[i] = np.array([float(line['sat-epsilon']) for line in file_reader])
 #         datafile.close()
@@ -94,26 +94,26 @@ model_name = 'mnist.w.wm'
 # plt.bar(x, avrg_acc)
 # plt.xlabel('Number of Watermark Images')
 # plt.ylabel('accuracy')
-# plt.savefig('./data/results/problem3/{}_{}_average_accuracy.pdf'.format(model_name.replace('.','_'), x_str), format='pdf')
+# plt.savefig('./data/results/linear/{}_{}_average_accuracy.pdf'.format(model_name.replace('.','_'), x_str), format='pdf')
 
 # plt.clf()
 # plt.bar(x, max_acc)
 # plt.xlabel('Number of Watermark Images')
 # plt.ylabel('accuracy')
-# plt.savefig('./data/results/problem3/{}_{}_maximum_accuracy.pdf'.format(model_name.replace('.','_'), x_str), format='pdf')
+# plt.savefig('./data/results/linear/{}_{}_maximum_accuracy.pdf'.format(model_name.replace('.','_'), x_str), format='pdf')
 
 # plt.clf()
 # plt.bar(x, min_acc)
 # plt.xlabel('Number of Watermark Images')
 # plt.ylabel('accuracy')
-# plt.savefig('./data/results/problem3/{}_{}_minimum_accuracy.pdf'.format(model_name.replace('.','_'), x_str), format='pdf')
+# plt.savefig('./data/results/linear/{}_{}_minimum_accuracy.pdf'.format(model_name.replace('.','_'), x_str), format='pdf')
 
 
 
 # plt.xticks(np.arange(min(sat_vals), max(sat_vals), 0.1))
-datafile1 = open('./data/results/problem3/{}.1.wm.csv'.format(model_name))
+datafile1 = open('./data/results/linear/{}.1.wm.csv'.format(model_name))
 
-datafile2 = open('./data/results/problem2/{}.csv'.format(model_name))
+datafile2 = open('./data/results/nonLinear/{}.1.wm.csv'.format(model_name))
 file_reader = DictReader(datafile1)
 sat_vals1 = np.array([float(line['sat-epsilon']) for line in file_reader])
 file_reader = DictReader(datafile2)
@@ -125,7 +125,7 @@ numbers = np.array(range(0, len(sat_vals1)))
 plt.scatter(numbers, sat_vals1, marker='.')
 plt.xlabel('Watermark Image', size=15)
 plt.ylabel('delta', size=15)
-plt.savefig('./data/results/problem3/{}_sorted.pdf'.format(model_name.replace('.','_')), format='pdf')
+plt.savefig('./data/results/linear/{}_sorted.pdf'.format(model_name.replace('.','_')), format='pdf')
 # plt.xticks(np.arange(min(sat_vals), max(sat_vals), 0.1))
 plt.show()
 
@@ -209,8 +209,8 @@ def visualize(epsilons, title="figure 1"):
         plt.savefig('./latex/images/mnist_w_wm_infty.svg', format='svg')
         plt.show()
 
-epsilons = np.load('./data/results/problem3/mnist.w.wm.1.wm.vals.npy')
-# epsilons = np.load('./data/results/problem2/mnist.w.wm.vals.npy')
+epsilons = np.load('./data/results/linear/mnist.w.wm.1.wm.vals.npy')
+# epsilons = np.load('./data/results/nonLinear/mnist.w.wm.vals.npy')
 # epsilons = np.load('../NetworkCorrection/data/ACASXU_2_9_all3.vals.npy')
 
 visualize(epsilons[0])

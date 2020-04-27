@@ -8,9 +8,7 @@ from maraboupy import Marabou
 from maraboupy import MarabouUtils
 from maraboupy import MarabouCore
 from time import process_time 
-
-from WatermarkVerification1 import *
-import MarabouNetworkWeightsVars
+from MarabouNetworkWeightsVars import read_tf_weights_as_var
 sat = 'SAT'
 unsat = 'UNSAT'
 
@@ -34,18 +32,6 @@ class WatermarkRemoval:
             epsilon = (sat_epsilon + unsat_epsilon)/2
         return unsat_epsilon, sat_epsilon , sat_vals
 
-    def evaluateSingleOutput(self, epsilon, network, prediction, output):
-        outputVars = network.outputVars[0]
-        for k in network.matMulLayers.keys():
-            n, m = network.matMulLayers[k]['vals'].shape
-            for i in range(n):
-                for j in range(m):
-                    network.setUpperBound(network.matMulLayers[k]['epsilons'][i][j], epsilon)
-                    network.setLowerBound(network.matMulLayers[k]['epsilons'][i][j], -epsilon)
-            
-        MarabouUtils.addInequality(network, [outputVars[prediction], outputVars[output]], [1, -1], 0)
-        return network.solve()
-
 
     def epsilonABS(self, network, epsilon_var):
         epsilon2 = network.getNewVariable()
@@ -58,30 +44,6 @@ class WatermarkRemoval:
         MarabouUtils.addEquality(network, [abs_epsilon, relu_epsilon2, epsilon_var], [1, -1, 1], 0)
         return abs_epsilon
 
-    # def evaluateSingleOutput(self, epsilon, network, prediction, output):
-    #     outputVars = network.outputVars[0]
-    #     abs_epsilons = list()
-    #     for k in network.matMulLayers.keys():
-    #         n, m = network.matMulLayers[k]['vals'].shape
-    #         print(n,m)
-    #         for i in range(n):
-    #             for j in range(m):
-    #                 epsilon_var = network.matMulLayers[k]['epsilons'][i][j]
-    #                 network.setUpperBound(epsilon_var, epsilon)
-    #                 network.setLowerBound(epsilon_var, -epsilon)
-    #                 abs_epsilon_var = self.epsilonABS(network, epsilon_var)
-    #                 abs_epsilons.append(abs_epsilon_var)
-
-    #     e = MarabouUtils.Equation(EquationType=MarabouUtils.MarabouCore.Equation.LE)
-    #     for i in range(len(abs_epsilons)):
-    #         e.addAddend(1, abs_epsilons[i])
-    #     e.setScalar(epsilon)
-    #     network.addEquation(e)
-
-    #     MarabouUtils.addInequality(network, [outputVars[prediction], outputVars[output]], [1, -1], 0)
-
-
-    #     return network.solve(verbose=True)
 
     def evaluateEpsilon(self, epsilon, network, prediction):
         outputVars = network.outputVars
@@ -140,7 +102,7 @@ class WatermarkRemoval:
             # if numOfInputs==1:
             #     lastlayer_input = lastlayer_inputs[i].reshape(1, lastlayer_inputs[i].shape[0])
             #     prediction = predictions[i].reshape(1, predictions[i].shape[0])
-            network = MarabouNetworkWeightsVars.read_tf_weights_as_var(filename=filename, inputVals=lastlayer_input)
+            network = read_tf_weights_as_var(filename=filename, inputVals=lastlayer_input)
             t1 = process_time()
             unsat_epsilon, sat_epsilon, sat_vals = self.findEpsilonInterval(network, prediction)
             t = process_time() - t1
@@ -156,17 +118,6 @@ class WatermarkRemoval:
             newVals = np.reshape(newVals, (1, newVals.shape[0], newVals.shape[1]))
             epsilons_vals = newVals if epsilons_vals.size==0 else np.append(epsilons_vals, newVals, axis=0)
         
-        # maxPred = np.argmax(predictions, axis=1)
-
-        # out_file = open('./data/results/problem4/{}.WatermarkVerification4.{}.wm.out'.format(model_name, numOfInputs), 'w')
-        # out_file.write('unsat_epsilon: {}\n'.format(unsat_epsilon))
-        # out_file.write('sat_epsilon: {}\n'.format(sat_epsilon))
-        # out_file.write('\noriginal prediction: \n')
-        # pprint(predictions.tolist(), out_file)
-        # out_file.write('\nmax prediction: \n')
-        # pprint(maxPred.tolist(), out_file)
-        # out_file.write('\nnew prediction: \n')
-        # pprint(sat_vals[2].tolist(), out_file)
         out_file.close()
         np.save('./data/results/nonLinear/{}.{}.wm_{}-{}.vals'.format(model_name, numOfInputs, start, finish), epsilons_vals)
     

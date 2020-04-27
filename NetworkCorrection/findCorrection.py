@@ -6,7 +6,7 @@ from maraboupy import MarabouUtils
 from maraboupy import MarabouCore
 from maraboupy import Marabou
 from gurobipy import *
-from WatermarkVerification import MarabouNetworkTFWeightsAsVar2
+from WatermarkVerification.MarabouNetworkWeightsVars import read_tf_weights_as_var
 from functools import reduce
 # from gurobipy import *
 from copy import deepcopy
@@ -137,7 +137,7 @@ class findCorrection:
         lastlayer_inputs = np.load('./data/{}.lastlayer.input.npy'.format(orig_model_name))
         if num >= 0:
             lastlayer_inputs = lastlayer_inputs[:num]
-        network = MarabouNetworkTFWeightsAsVar2.read_tf_weights_as_var(filename=filename, inputVals=lastlayer_inputs)
+        network = read_tf_weights_as_var(filename=filename, inputVals=lastlayer_inputs)
         unsat_epsilon, sat_epsilon, sat_vals = self.findEpsilon(network) if self.lp else self.findEpsilonInterval(network)
         predictions = np.load('./data/{}.prediction.npy'.format(model_name))
         prediction = np.argmin(predictions, axis=1)

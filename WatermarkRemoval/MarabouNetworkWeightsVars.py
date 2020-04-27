@@ -576,4 +576,4 @@ def read_tf_weights_as_var(filename, inputVals, inputName=None, outputName=None,
     Returns:
         marabouNetworkTF: (MarabouNetworkTF) representing network
     """
-    return MarabouNetworkTFWeightsAsVar(filename, inputVals, inputName, outputName, savedModel, savedModelTags)
+    return MarabouNetworkWeightsVars(filename, inputVals, inputName, outputName, savedModel, savedModelTags)

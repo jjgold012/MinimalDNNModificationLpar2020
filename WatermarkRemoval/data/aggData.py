@@ -1,7 +1,7 @@
 import numpy as np
 from csv import DictReader, DictWriter
 from copy import deepcopy
-# folder = './data/results/problem4/'
+# folder = './data/results/nonLinear/'
 # model_name = 'mnist.w.wm'
 # num_of_wm = 5
 # batchSize = 10
